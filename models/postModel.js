@@ -10,6 +10,7 @@ const postLogSchema = mongoose.Schema(
 			required: true,
 		},
 		message: { type: String, required: true },
+		media: { type: String },
 	},
 	{
 		minimize: false,

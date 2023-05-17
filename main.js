@@ -2,8 +2,9 @@ import express from 'express'
 import morgan from 'morgan'
 import dotenv from 'dotenv'
 import cors from 'cors'
-
-import path from 'path'
+import multer from 'multer'
+import fs from 'fs'
+import { protect } from './middleware/authMiddleware.js'
 
 /* Config */
 import { connectDB } from './config/db.js'
@@ -23,35 +24,49 @@ const app = express()
 app.use(
 	cors({
 		credentials: true,
-		origin: 'http://localhost:5173',
-		// 'https://volunteer-iota.vercel.app',
+		origin: 'https://testovoe-client.vercel.app/',
 	})
 )
 
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'))
 
+const storage = multer.diskStorage({
+	destination: (_, __, cb) => {
+		if (!fs.existsSync('uploads')) {
+			fs.mkdirSync('uploads')
+		}
+		cb(null, 'uploads')
+	},
+	filename: (_, file, cb) => {
+		cb(null, file.originalname)
+	},
+})
+
+const upload = multer({ storage })
+
 app.use(express.json())
-
-const __dirname = path.resolve()
-
-app.use('/uploads', express.static(path.join(__dirname, '/uploads/')))
 
 app.use('/api/users', userRouter)
 app.use('/api/posts', postRouter)
 
-if (process.env.NODE_ENV === 'production') {
-	// Step 1:
-	app.use(express.static(path.resolve(__dirname, './client/build')))
-	// Step 2:
-	app.get('*', function (request, response) {
-		response.sendFile(path.resolve(__dirname, './client/build', 'index.html'))
-	})
-}
+app.post('/api/uploads', protect, upload.single('file'), (req, res) => {
+	if (req.file) {
+		res.json({
+			url: `/uploads/${req.file.originalname}`,
+		})
+	} else {
+		res.status(400).json({
+			error: 'Нет файла для загрузки',
+		})
+	}
+})
+
+app.use('/api/uploads', express.static('uploads'))
 
 app.use(notFound)
 app.use(errorHandler)
 
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 4200
 
 app.listen(
 	PORT,

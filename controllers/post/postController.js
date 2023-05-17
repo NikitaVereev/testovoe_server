@@ -3,7 +3,7 @@ import asyncHandler from 'express-async-handler'
 
 export const getPosts = asyncHandler(async (req, res) => {
 	const page = parseInt(req.query.page) || 1
-	const pageSize = parseInt(req.query.pageSize) || 10
+	const pageSize = parseInt(req.query.pageSize) || 20
 
 	const skip = (page - 1) * pageSize
 
