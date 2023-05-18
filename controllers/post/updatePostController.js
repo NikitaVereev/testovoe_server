@@ -4,14 +4,14 @@ export const updatePost = async (req, res) => {
 	try {
 		const postId = req.body
 		const userId = req.user._id
-		const { message } = req.body
+		const { message, media } = req.body
 
 		const updatedPost = await Post.findOneAndUpdate(
 			{
 				_id: postId,
 				user: userId,
 			},
-			{ message },
+			{ message, media },
 			{ new: true }
 		)
 		if (!updatedPost) {
